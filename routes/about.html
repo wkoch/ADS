@@ -3,61 +3,91 @@
 </svelte:head>
 
 <h1>Conversão de Bases</h1>
+<p><label>Decimal: <input type="text" bind:value=decimal on:change=converta("dec")></label><br></p>
 
-<input type="text" bind:value=decimal on:change=converta("dec")>
-<input type="text" bind:value=binario>
-<input type="text" bind:value=octal>
-<input type="text" bind:value=hexa>
+<label>Binário: <input type="text" bind:value=binario></label><br>
+<label>Octal: <input type="text" bind:value=octal></label><br>
+<label>Hexa-Decimal: <input type="text" bind:value=hexa></label>
 
 <script>
 	function multiplesBelow(b, m) {
-		let list = [1,b];
-		while (list[list.length-1]*b <= m) {
-			list.push(list[list.length-1]*b);
-		}
-		console.log(list);
-		return list.reverse();
+	  let list = [1, b];
+	  while (list[list.length - 1] * b <= m) {
+	    list.push(list[list.length - 1] * b);
+	  }
+	  console.log(list);
+	  return list.reverse();
 	}
-	function decimalToBinary(dec) {
-		let binary = [];
-		let multiples = multiplesBelow(2, dec);
-		console.log(multiples);
-		multiples.forEach(n => {
-			if (dec >= n) {
-				console.log(`${dec}-${n} = ${dec-n}`);
-				binary.push(1);
-				dec-=n;
-			} else {
-				binary.push(0);
-			}
-		});
-		console.log(binary);
-		return binary.join('');
-		
+	function decimalTo(dec, base) {
+	  let result = [];
+	  let multiples = multiplesBelow(base, dec);
+	  console.log(multiples);
+	  multiples.forEach(n => {
+	    if (dec >= n) {
+	      let count = 0;
+	      while (dec >= n) {
+	        console.log(`${dec}-${n} = ${dec - n}`);
+	        dec -= n;
+	        count += 1;
+	      }
+	      result.push(count);
+	    } else {
+	      result.push(0);
+	    }
+	  });
+	  console.log(result);
+	  if (base == 16) {
+	    result = result.map(function(n) {
+	      switch (n) {
+	        case 10:
+	          return "A";
+	          break;
+	        case 11:
+	          return "B";
+	          break;
+	        case 12:
+	          return "C";
+	          break;
+	        case 13:
+	          return "D";
+	          break;
+	        case 14:
+	          return "E";
+	          break;
+	        case 15:
+	          return "F";
+	          break;
+			default:
+			  return n;
+	          break;
+	      }
+	    });
+	  }
+	  return result.join("");
 	}
 	export default {
 	  data() {
 	    return {
 	      decimal: 0,
-		  binario: 0,
-		  octal: 0,
-		  hexa: 0
+	      binario: 0,
+	      octal: 0,
+	      hexa: 0
 	    };
 	  },
 	  methods: {
-			converta(tipo) {
-				let { decimal, binario, octal, hexa } = this.get();
-				switch (tipo) {
-					case "dec":
-						this.set({ binario: decimalToBinary(decimal) });
-						this.set({ octal: decimal*8 });
-						this.set({ hexa: decimal*16 });
-						break;
-				
-					default:
-						break;
-				}
-			}
-		}
+	    converta(tipo) {
+	      let { decimal, binario, octal, hexa } = this.get();
+	      switch (tipo) {
+	        case "dec":
+	          this.set({ binario: decimalTo(decimal, 2) });
+	          this.set({ octal: decimalTo(decimal, 8) });
+	          this.set({ hexa: decimalTo(decimal, 16) });
+	          break;
+
+	        default:
+	          break;
+	      }
+	    }
+	  }
 	};
 </script>
