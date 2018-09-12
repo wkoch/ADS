@@ -3,11 +3,11 @@
 </svelte:head>
 
 <h1>Conversão de Bases</h1>
-<p><label>Decimal: <input type="text" bind:value=decimal on:change=converta("dec")></label><br></p>
+<p><label>Decimal:<br><input type="text" bind:value=decimal on:change=converta(10)></label><br></p>
 
-<label>Binário: <input type="text" bind:value=binario></label><br>
-<label>Octal: <input type="text" bind:value=octal></label><br>
-<label>Hexa-Decimal: <input type="text" bind:value=hexa></label>
+<p><label>Binário:<br><input type="text" bind:value=binario on:change=converta(2) pattern="[01.,]+"></label><br></p>
+<p><label>Octal:<br><input type="text" bind:value=octal on:change=converta(8) pattern="[0-7.,]+"></label><br></p>
+<p><label>Hexa:<br><input type="text" bind:value=hexa on:change=converta(16) pattern="[0-9.,A-F]+"></label></p>
 
 <script>
 	function multiplesBelow(b, m) {
@@ -15,27 +15,43 @@
 	  while (list[list.length - 1] * b <= m) {
 	    list.push(list[list.length - 1] * b);
 	  }
-	  console.log(list);
 	  return list.reverse();
 	}
-	function decimalTo(dec, base) {
+	function decimalTo(n, base) {
+		let integer = Math.trunc(n);
+		let decimals = n-integer;
 	  let result = [];
-	  let multiples = multiplesBelow(base, dec);
-	  console.log(multiples);
+		let multiples = multiplesBelow(base, n);
+		// integer
 	  multiples.forEach(n => {
-	    if (dec >= n) {
+	    if (integer >= n) {
 	      let count = 0;
-	      while (dec >= n) {
-	        console.log(`${dec}-${n} = ${dec - n}`);
-	        dec -= n;
+	      while (integer >= n) {
+	        integer -= n;
 	        count += 1;
 	      }
 	      result.push(count);
 	    } else {
 	      result.push(0);
 	    }
-	  });
-	  console.log(result);
+		});
+		// decimals
+		if (decimals > 0) {
+			let count = 0;
+			result.push(".");
+			while (count < 20 || decimals !== 0) {
+				decimals = decimals * base;
+				if (decimals < 1) {
+					result.push(0);
+				} else {
+					let absolute = Math.trunc(decimals);
+					decimals = decimals - absolute;
+					result.push(absolute);
+				}
+				count += 1;
+			}
+		}
+		// finishing
 	  if (base == 16) {
 	    result = result.map(function(n) {
 	      switch (n) {
@@ -65,6 +81,47 @@
 	  }
 	  return result.join("");
 	}
+
+	function decimalToBinary(n) {	return decimalTo(n, 2); }
+	function decimalToOctal(n) { return decimalTo(n, 8); }
+	function decimalToHexa(n) { return decimalTo(n, 16); }
+
+
+	function toDecimal(base, n) {
+		let integer = Math.trunc(n);
+		let decimal = Number(n.toString().replace(/(\d+)[.,]/gi, "0."));
+		let integers = integer.toString().split('');
+		let decimals = decimal.toString().split('').slice(2);
+		let decs = [];
+		let count = integers.length-1;
+		let ints = integers.map(function(n) {
+			let r = Number(n) * Math.pow(base, count);
+			count -= 1;
+			return r;
+		});
+		//decimals
+		if (decimals.length > 0) {
+			count = -1;
+			decs = decimals.map(function(n) {
+				let r = Number(n) * Math.pow(base, count);
+				count -= 1;
+				return r;
+			});
+		}
+		let sum = (accumulator, currentValue) => accumulator + currentValue;
+
+		if (decs.length > 0) {
+			//console.log(decs);
+			return ints.reduce(sum) + decs.reduce(sum);
+		} else {
+			return ints.reduce(sum);
+		}
+	}
+
+	function binaryToDecimal(n) { return toDecimal(2, n); }
+	function octalToDecimal(n) { return toDecimal(8, n); }
+	function hexaToDecimal(n) { return toDecimal(16, n); }
+
 	export default {
 	  data() {
 	    return {
@@ -75,15 +132,33 @@
 	    };
 	  },
 	  methods: {
-	    converta(tipo) {
+	    converta(base) {
 	      let { decimal, binario, octal, hexa } = this.get();
-	      switch (tipo) {
-	        case "dec":
-	          this.set({ binario: decimalTo(decimal, 2) });
-	          this.set({ octal: decimalTo(decimal, 8) });
-	          this.set({ hexa: decimalTo(decimal, 16) });
+	      switch (base) {
+					case 2:
+					  let b2d = binaryToDecimal(binario);
+						this.set({ decimal: b2d });
+	          this.set({ octal: decimalToOctal(b2d) });
+	          this.set({ hexa: decimalToHexa(b2d) });
+						break;
+					case 8:
+						let o2d = octalToDecimal(octal);
+						this.set({ decimal: o2d });
+	          this.set({ binario: decimalToBinary(o2d) });
+	          this.set({ hexa: decimalToHexa(o2d) });
+						break;
+					case 10:
+						let d2b = decimalToBinary(decimal);
+	          this.set({ binario: d2b });
+	          this.set({ octal: decimalToOctal(decimal) });
+	          this.set({ hexa: decimalToHexa(decimal) });
 	          break;
-
+					case 16:
+						let h2d = hexaToDecimal(hexa);
+						this.set({ binario: h2d });
+						this.set({ octal: decimalToOctal(h2d) });
+	          this.set({ decimal: decimalToHexa(h2d) });
+	          break;
 	        default:
 	          break;
 	      }
