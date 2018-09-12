@@ -7,7 +7,7 @@
 
 <p><label>Binário:<br><input type="text" bind:value=binario on:change=converta(2) pattern="[01.,]+"></label><br></p>
 <p><label>Octal:<br><input type="text" bind:value=octal on:change=converta(8) pattern="[0-7.,]+"></label><br></p>
-<p><label>Hexa:<br><input type="text" bind:value=hexa on:change=converta(16) pattern="[0-9.,A-F]+"></label></p>
+<p><label>Hexa:<br><input type="text" bind:value=hexa on:change=converta(16) pattern="[0-9.,A-Fa-f]+"></label></p>
 
 <script>
 	function multiplesBelow(b, m) {
@@ -17,43 +17,10 @@
 	  }
 	  return list.reverse();
 	}
-	function decimalTo(n, base) {
-		let integer = Math.trunc(n);
-		let decimals = n-integer;
-	  let result = [];
-		let multiples = multiplesBelow(base, n);
-		// integer
-	  multiples.forEach(n => {
-	    if (integer >= n) {
-	      let count = 0;
-	      while (integer >= n) {
-	        integer -= n;
-	        count += 1;
-	      }
-	      result.push(count);
-	    } else {
-	      result.push(0);
-	    }
-		});
-		// decimals
-		if (decimals > 0) {
-			let count = 0;
-			result.push(".");
-			while (count < 20 || decimals !== 0) {
-				decimals = decimals * base;
-				if (decimals < 1) {
-					result.push(0);
-				} else {
-					let absolute = Math.trunc(decimals);
-					decimals = decimals - absolute;
-					result.push(absolute);
-				}
-				count += 1;
-			}
-		}
-		// finishing
-	  if (base == 16) {
-	    result = result.map(function(n) {
+
+	function toHexa(base, xs) {
+		if (base == 16) {
+	    xs = xs.map(function(n) {
 	      switch (n) {
 	        case 10:
 	          return "A";
@@ -78,7 +45,52 @@
 	          break;
 	      }
 	    });
-	  }
+		}
+		return xs;
+	}
+
+	function decimalTo(n, base) {
+		let integer = Math.trunc(n);
+		let decimals = n-integer;
+	  let result = [];
+		let multiples = multiplesBelow(base, n);
+		// integer
+	  multiples.forEach(n => {
+	    if (integer >= n) {
+	      let count = 0;
+	      while (integer >= n) {
+	        integer -= n;
+	        count += 1;
+	      }
+	      result.push(count);
+	    } else {
+	      result.push(0);
+	    }
+		});
+		// decimals
+		if (decimals > 0) {
+			let count = 0;
+			result.push(".");
+			while (count < 30 || decimals !== 0) {
+				decimals = decimals * base;
+				if (decimals < 1) {
+					result.push(0);
+				} else {
+					let absolute = Math.trunc(decimals);
+					decimals = decimals - absolute;
+					result.push(absolute);
+				}
+				count += 1;
+			}
+			while (result[result.length-1] == 0) {
+				result.pop();
+			}
+		}
+		// finishing
+		result = toHexa(base, result);
+		while (result[0] == 0 && result[1] != ".") {
+			result = result.slice(1);
+		}
 	  return result.join("");
 	}
 
@@ -86,12 +98,48 @@
 	function decimalToOctal(n) { return decimalTo(n, 8); }
 	function decimalToHexa(n) { return decimalTo(n, 16); }
 
+	function fromHexa(base, xs) {
+		if (base == 16) {
+	    xs = xs.map(function(n) {
+	      switch (n) {
+					case "A":
+					case "a":
+	          return 10;
+	          break;
+					case "B":
+					case "b":
+	          return 11;
+	          break;
+					case "C":
+					case "c":
+	          return 12;
+	          break;
+					case "D":
+					case "d":
+	          return 13;
+	          break;
+					case "E":
+					case "e":
+	          return 14;
+	          break;
+					case "F":
+					case "f":
+	          return 15;
+	          break;
+			default:
+			  return n;
+	          break;
+	      }
+	    });
+		}
+		return xs;
+	}
 
-	function toDecimal(base, n) {
-		let integer = Math.trunc(n);
-		let decimal = Number(n.toString().replace(/(\d+)[.,]/gi, "0."));
-		let integers = integer.toString().split('');
-		let decimals = decimal.toString().split('').slice(2);
+	function toDecimal(base, s) {
+		let numbers = s.split(/[,.]/gi);
+		let integers = fromHexa(base, numbers[0].toString().split(''));
+		let decimals = numbers.length > 1 ? fromHexa(base, numbers[1].toString().split('')) : 0;
+		console.log(integers);
 		let decs = [];
 		let count = integers.length-1;
 		let ints = integers.map(function(n) {
@@ -111,7 +159,6 @@
 		let sum = (accumulator, currentValue) => accumulator + currentValue;
 
 		if (decs.length > 0) {
-			//console.log(decs);
 			return ints.reduce(sum) + decs.reduce(sum);
 		} else {
 			return ints.reduce(sum);
@@ -155,9 +202,10 @@
 	          break;
 					case 16:
 						let h2d = hexaToDecimal(hexa);
-						this.set({ binario: h2d });
+						console.log(h2d)
+						this.set({ binario: decimalToBinary(h2d) });
 						this.set({ octal: decimalToOctal(h2d) });
-	          this.set({ decimal: decimalToHexa(h2d) });
+	          this.set({ decimal: h2d });
 	          break;
 	        default:
 	          break;
@@ -166,3 +214,9 @@
 	  }
 	};
 </script>
+
+<style>
+	input {
+		width: 200px;
+	}
+</style>
