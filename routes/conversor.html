@@ -1,13 +1,13 @@
 <svelte:head>
-	<title>About</title>
+	<title>Conversão de Bases</title>
 </svelte:head>
 
 <h1>Conversão de Bases</h1>
-<p><label>Decimal:<br><input type="text" bind:value=decimal on:change=converta(10)></label><br></p>
+<p><label>Decimal:<br><input type="text" bind:value=decimal on:change=converta(10) min="0" pattern="[\d.,]+"></label><br></p>
 
-<p><label>Binário:<br><input type="text" bind:value=binario on:change=converta(2) pattern="[01.,]+"></label><br></p>
-<p><label>Octal:<br><input type="text" bind:value=octal on:change=converta(8) pattern="[0-7.,]+"></label><br></p>
-<p><label>Hexa:<br><input type="text" bind:value=hexa on:change=converta(16) pattern="[0-9.,A-Fa-f]+"></label></p>
+<p><label>Binário:<br><input type="text" bind:value=binario on:change=converta(2) min="0" pattern="[01.,]+"></label><br></p>
+<p><label>Octal:<br><input type="text" bind:value=octal on:change=converta(8) min="0" pattern="[0-7.,]+"></label><br></p>
+<p><label>Hexa:<br><input type="text" bind:value=hexa on:change=converta(16) min="0" pattern="[0-9.,A-Fa-f]+"></label></p>
 
 <script>
 	function multiplesBelow(b, m) {
@@ -180,7 +180,7 @@
 	  },
 	  methods: {
 	    converta(base) {
-	      let { decimal, binario, octal, hexa } = this.get();
+	      const { decimal, binario, octal, hexa } = this.get();
 	      switch (base) {
 					case 2:
 					  let b2d = binaryToDecimal(binario);

@@ -1,0 +1,84 @@
+<svelte:head>
+	<title>Sistema Ponto Flutuante</title>
+</svelte:head>
+
+<h1>Sistema Ponto Flutuante</h1>
+<p><label>Base:<br><input type="number" min="2" max="100" bind:value=base pattern="\d+" on:change=updateSPF()></label></p>
+<p><label>Mantissa:<br><input type="number" min="1" max="30" bind:value=mantissa pattern="\d+" on:change=updateSPF()></label></p>
+<p><label>Expoente Negativo:<br><input type="number" max="-1" bind:value=negativo pattern="-\d+" on:change=updateSPF()></label></p>
+<p><label>Expoente Positivo:<br><input type="number" min="1" bind:value=positivo pattern="\d+" on:change=updateSPF()></label></p>
+
+<p>Limite Menor: 0.1 x {base}<sup>{negativo}</sup> = {menor}</p>
+<p>Limite Maior: 0.{base-1} x {base}<sup>{positivo}</sup> = {maior}</p>
+
+<table>
+	<tr>
+		<td class="red">Overflow</td>
+		<td class="green">Maior</td>
+		<td class="green">Menor</td>
+		<td class="red">Underflow</td>
+		<td class="green">0</td>
+		<td class="red">Underflow</td>
+		<td class="green">Menor</td>
+		<td class="green">Maior</td>
+		<td class="red">Overflow</td>
+	</tr>
+</table>
+
+<script>
+	function higherLimit(base, n) {
+		let result = ["0."];
+		for (let i = 0; i < n; i++) {
+			result.push((base-1).toString());
+		}
+		return Number(result.join(""));
+	}
+
+	function lowerLimit(base, n) {
+		let result = ["0."];
+		for (let i = 0; i < n; i++) {
+			result.push("0");
+		}
+		result.push("1");
+		return Number(result.join(""));
+	}
+
+	export default {
+	  data() {
+	    return {
+	      base: 10,
+				mantissa: 5,
+				negativo: -6,
+				positivo: 6,
+				menor: 0,
+				maior: 0
+	    };
+	  },
+	  methods: {
+	    updateSPF() {
+				const { base, mantissa, negativo, positivo, menor, maior } = this.get();
+				this.set({ menor: lowerLimit(base, negativo*-1) });
+				this.set({ maior: higherLimit(base, mantissa) * Math.pow(10, 6) });
+	    }
+	  }
+	};
+</script>
+
+<style>
+	input {
+		width: 200px;
+	}
+
+	table {
+		border: solid 1px gray;
+	}
+
+	.red {
+		background: red;
+	}
+
+	.green {
+		background: green;
+		color: white;
+	}
+</style>
