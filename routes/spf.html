@@ -25,40 +25,52 @@
 	</tr>
 </table>
 
+<p><label>Número:<br><input type="text" bind:value=numero on:change=updateSPF()></label></p>
+
+<p>Truncado: {truncado}.</p>
+<p>Arrendodado: {arredondado}.</p>
+
 <script>
 	function higherLimit(base, n) {
-		let result = ["0."];
-		for (let i = 0; i < n; i++) {
-			result.push((base-1).toString());
-		}
-		return Number(result.join(""));
+	  let result = ["0."];
+	  for (let i = 0; i < n; i++) {
+	    result.push((base - 1).toString());
+	  }
+	  return Number(result.join(""));
 	}
 
 	function lowerLimit(base, n) {
-		let result = ["0."];
-		for (let i = 0; i < n; i++) {
-			result.push("0");
-		}
-		result.push("1");
-		return Number(result.join(""));
+	  let result = ["0."];
+	  for (let i = 0; i < n; i++) {
+	    result.push("0");
+	  }
+	  result.push("1");
+	  return Number(result.join(""));
 	}
 
 	export default {
 	  data() {
 	    return {
 	      base: 10,
-				mantissa: 5,
-				negativo: -6,
-				positivo: 6,
-				menor: 0,
-				maior: 0
+	      mantissa: 5,
+	      negativo: -6,
+	      positivo: 6,
+	      menor: 0,
+		  maior: 0,
+		  numero: 0,
+		  truncado: 0,
+		  arredondado: 0
 	    };
 	  },
 	  methods: {
 	    updateSPF() {
-				const { base, mantissa, negativo, positivo, menor, maior } = this.get();
-				this.set({ menor: lowerLimit(base, negativo*-1) });
-				this.set({ maior: higherLimit(base, mantissa) * Math.pow(10, 6) });
+	      const { base, mantissa, negativo, positivo, menor, maior, numero, truncado, arredondado } = this.get();
+	      this.set({ menor: lowerLimit(base, negativo * -1) });
+	      this.set({
+	        maior: higherLimit(base, mantissa) * Math.pow(base, positivo)
+		  });
+		  this.set({ truncado: parseFloat(numero).toFixed(mantissa) });
+		  this.set({ arredondado: parseFloat(numero).toPrecision(mantissa) });
 	    }
 	  }
 	};
@@ -66,19 +78,19 @@
 
 <style>
 	input {
-		width: 200px;
+	  width: 200px;
 	}
 
 	table {
-		border: solid 1px gray;
+	  border: solid 1px gray;
 	}
 
 	.red {
-		background: red;
+	  background: red;
 	}
 
 	.green {
-		background: green;
-		color: white;
+	  background: green;
+	  color: white;
 	}
 </style>
