@@ -10,164 +10,23 @@
 <p><label>Hexa:<br><input type="text" bind:value=hexa on:change=converta(16) min="0" pattern="[0-9.,A-Fa-f]+"></label></p>
 
 <script>
-	function multiplesBelow(b, m) {
-	  let list = [1, b];
-	  while (list[list.length - 1] * b <= m) {
-	    list.push(list[list.length - 1] * b);
-	  }
-	  return list.reverse();
-	}
+	function any2dec(n, base, code) {
+	  if (!n.toString().includes(".")) {
+	    return Number(code + n);
+	  } else {
+			let [i, f] = n.toString().split(".");
+			i = Number(code + i).toString().toUpperCase();
 
-	function toHexa(base, xs) {
-		if (base == 16) {
-	    xs = xs.map(function(n) {
-	      switch (n) {
-	        case 10:
-	          return "A";
-	          break;
-	        case 11:
-	          return "B";
-	          break;
-	        case 12:
-	          return "C";
-	          break;
-	        case 13:
-	          return "D";
-	          break;
-	        case 14:
-	          return "E";
-	          break;
-	        case 15:
-	          return "F";
-	          break;
-			default:
-			  return n;
-	          break;
-	      }
-	    });
-		}
-		return xs;
-	}
-
-	function decimalTo(n, base) {
-		let integer = Math.trunc(n);
-		let decimals = n-integer;
-	  let result = [];
-		let multiples = multiplesBelow(base, n);
-		// integer
-	  multiples.forEach(n => {
-	    if (integer >= n) {
-	      let count = 0;
-	      while (integer >= n) {
-	        integer -= n;
-	        count += 1;
-	      }
-	      result.push(count);
-	    } else {
-	      result.push(0);
-	    }
-		});
-		// decimals
-		if (decimals > 0) {
+			let fp = f.split("").map(s => Number(code + s));
 			let count = 0;
-			result.push(".");
-			while (count < 30 || decimals !== 0) {
-				decimals = decimals * base;
-				if (decimals < 1) {
-					result.push(0);
-				} else {
-					let absolute = Math.trunc(decimals);
-					decimals = decimals - absolute;
-					result.push(absolute);
-				}
-				count += 1;
-			}
-			while (result[result.length-1] == 0) {
-				result.pop();
-			}
-		}
-		// finishing
-		result = toHexa(base, result);
-		while (result[0] == 0 && result[1] != ".") {
-			result = result.slice(1);
-		}
-	  return result.join("");
-	}
-
-	function decimalToBinary(n) {	return decimalTo(n, 2); }
-	function decimalToOctal(n) { return decimalTo(n, 8); }
-	function decimalToHexa(n) { return decimalTo(n, 16); }
-
-	function fromHexa(base, xs) {
-		if (base == 16) {
-	    xs = xs.map(function(n) {
-	      switch (n) {
-					case "A":
-					case "a":
-	          return 10;
-	          break;
-					case "B":
-					case "b":
-	          return 11;
-	          break;
-					case "C":
-					case "c":
-	          return 12;
-	          break;
-					case "D":
-					case "d":
-	          return 13;
-	          break;
-					case "E":
-					case "e":
-	          return 14;
-	          break;
-					case "F":
-					case "f":
-	          return 15;
-	          break;
-			default:
-			  return n;
-	          break;
-	      }
-	    });
-		}
-		return xs;
-	}
-
-	function toDecimal(base, s) {
-		let numbers = s.split(/[,.]/gi);
-		let integers = fromHexa(base, numbers[0].toString().split(''));
-		let decimals = numbers.length > 1 ? fromHexa(base, numbers[1].toString().split('')) : 0;
-		console.log(integers);
-		let decs = [];
-		let count = integers.length-1;
-		let ints = integers.map(function(n) {
-			let r = Number(n) * Math.pow(base, count);
-			count -= 1;
-			return r;
-		});
-		//decimals
-		if (decimals.length > 0) {
-			count = -1;
-			decs = decimals.map(function(n) {
-				let r = Number(n) * Math.pow(base, count);
+			return Number(i) + Number(fp.map(function(s) {
 				count -= 1;
-				return r;
-			});
-		}
-		let sum = (accumulator, currentValue) => accumulator + currentValue;
-
-		if (decs.length > 0) {
-			return ints.reduce(sum) + decs.reduce(sum);
-		} else {
-			return ints.reduce(sum);
-		}
+				return s * Math.pow(base, count);
+			}).reduce((total, amount) => total + amount));
+	  }
 	}
 
-	function binaryToDecimal(n) { return toDecimal(2, n); }
-	function octalToDecimal(n) { return toDecimal(8, n); }
-	function hexaToDecimal(n) { return toDecimal(16, n); }
+	function dec2any(d, b) { return (d).toString(b); }
 
 	export default {
 	  data() {
@@ -182,29 +41,28 @@
 	    converta(base) {
 	      const { decimal, binario, octal, hexa } = this.get();
 	      switch (base) {
-					case 2:
-					  let b2d = binaryToDecimal(binario);
-						this.set({ decimal: b2d });
-	          this.set({ octal: decimalToOctal(b2d) });
-	          this.set({ hexa: decimalToHexa(b2d) });
-						break;
-					case 8:
-						let o2d = octalToDecimal(octal);
-						this.set({ decimal: o2d });
-	          this.set({ binario: decimalToBinary(o2d) });
-	          this.set({ hexa: decimalToHexa(o2d) });
-						break;
-					case 10:
-						let d2b = decimalToBinary(decimal);
-	          this.set({ binario: d2b });
-	          this.set({ octal: decimalToOctal(decimal) });
-	          this.set({ hexa: decimalToHexa(decimal) });
+	        case 2:
+	          let b2d = any2dec(binario, 2, "0b");
+	          this.set({ decimal: b2d });
+	          this.set({ octal: dec2any(b2d, 8) });
+	          this.set({ hexa: dec2any(b2d, 16) });
 	          break;
-					case 16:
-						let h2d = hexaToDecimal(hexa);
-						console.log(h2d)
-						this.set({ binario: decimalToBinary(h2d) });
-						this.set({ octal: decimalToOctal(h2d) });
+	        case 8:
+	          let o2d = any2dec(octal, 8, "0o");
+	          this.set({ decimal: o2d });
+	          this.set({ binario: dec2any(o2d, 2) });
+	          this.set({ hexa: dec2any(o2d, 16) });
+	          break;
+	        case 10:
+	          let dec = Number(decimal);
+	          this.set({ binario: dec2any(dec, 2) });
+	          this.set({ octal: dec2any(dec, 8) });
+	          this.set({ hexa: dec2any(dec, 16) });
+	          break;
+	        case 16:
+	          let h2d = any2dec(hexa, 16, "0x");
+	          this.set({ binario: dec2any(h2d, 2) });
+	          this.set({ octal: dec2any(h2d, 8) });
 	          this.set({ decimal: h2d });
 	          break;
 	        default:
@@ -217,6 +75,6 @@
 
 <style>
 	input {
-		width: 200px;
+	  width: 200px;
 	}
 </style>
